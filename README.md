@@ -785,6 +785,9 @@ For breaking repackaging, run `Auto tag` by hand with `breaking` ticked to get
 `(Y+1).0`. `IMAGE_REVISION` in `docker-bake.hcl` only tags local builds. The workflow aborts on any tag that isn't
 `<version>-Y`, `<version>-Y.Z` (optionally `-debug`) or `latest[-debug]`.
 
+Both scans skip the `crowdsec` and `cscli` binaries (`skip-files` in `trivy.yaml`): they are copied verbatim from
+upstream, so we can't patch them, and fixes only arrive with a new `CROWDSEC_VERSION`.
+
 `register-bouncer` and `register-capi` are packages of the repo-root `go.mod`
 (not modules of their own) so the shared `go-pr` check runs their tests.
 

@@ -1,0 +1,7 @@
+# Picked up by `trivy image` in the shared release and daily-scan workflows (run from the repo root).
+# crowdsec and cscli are copied verbatim from the upstream crowdsecurity/crowdsec image (Dockerfile COPY --from=upstream);
+# we can't patch them, so they're not scanned. Fixes arrive only via a new CROWDSEC_VERSION (Renovate).
+scan:
+  skip-files:
+    - usr/local/bin/crowdsec
+    - usr/local/bin/cscli
