@@ -1,0 +1,78 @@
+hide_labels: true
+
+processes:
+  load_secrets:
+    type: prepare_secrets
+    enabled: false
+  register_capi:
+    path: /usr/local/bin/register-capi
+    arguments: ["/etc/crowdsec/capi/credentials.yaml"]
+    type: one_shot
+    on_failure: continue
+    depends_on:
+      load_secrets:
+        exit: success
+        ignore_exit_when_disabled: true
+  register_lapi:
+    path: /usr/local/bin/cscli
+    arguments: ["machines", "add", "localhost", "--auto", "--force"]
+    type: one_shot
+    depends_on:
+      load_secrets:
+        exit: success
+        ignore_exit_when_disabled: true
+      register_capi:
+        exit: success
+  install_collections:
+    path: /usr/local/bin/cscli
+    type: one_shot
+    on_failure: continue
+    depends_on:
+      load_secrets:
+        exit: success
+        ignore_exit_when_disabled: true
+  add_bouncer:
+    path: /usr/local/bin/register-bouncer
+    type: one_shot
+    on_failure: continue
+    arguments: ["{{1}}", "{{2}}", "{{3}}", "--force"]
+    for_each:
+      - "traefik;--key-raw;TRAEFIK"
+    depends_on:
+      load_secrets:
+        exit: success
+        ignore_exit_when_disabled: true
+      register_lapi:
+        exit: success
+  config:
+    path: /usr/local/bin/env2yml
+    arguments: ["-prefix", "CROWDSEC_CONFIG_", "-out", "/etc/crowdsec/config.yaml.local"]
+    type: one_shot
+    enabled: false
+    depends_on:
+      load_secrets:
+        exit: success
+        ignore_exit_when_disabled: true
+  crowdsec:
+    path: /usr/local/bin/crowdsec
+    type: service
+    depends_on:
+      load_secrets:
+        exit: success
+        ignore_exit_when_disabled: true
+      register_lapi:
+        exit: success
+      register_capi:
+        exit: any
+      install_collections:
+        exit: any
+      add_bouncer:
+        exit: any
+      config:
+        exit: any
+  upgrade_collections:
+    path: /usr/local/bin/cscli
+    arguments: ["collections", "upgrade", "--all"]
+    type: cron
+    cron: "0 3 * * *"
+    on_failure: continue

@@ -1,0 +1,8 @@
+*
+!supervisor.yml
+!go.mod
+!register-bouncer
+!register-bouncer/**
+!register-capi
+!register-capi/**
+**/.claude
